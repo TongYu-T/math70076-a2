@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Cached API responses: reproducible from the API, too large to version
+data/cache/
+data/raw_locations.json
+
+# Never commit credentials
+.env
+*.key
+
+# Profiling artefacts
+profile.out
+*.lprof
+
+.ipynb_checkpoints/
+.DS_Store
