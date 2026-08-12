@@ -139,7 +139,8 @@ plot_df = table[(table["population"] > 5e6) & table["pm25"].notna()].copy()
 
 # Ten highest-PM2.5 countries with zero reference-grade monitors;
 # ties broken by population (more people affected first).
-worst = plot_df[plot_df["reference_per_million"] == 0].nlargest(10, ["pm25", "population"])
+zero_ref = plot_df[plot_df["reference_per_million"] == 0]
+worst = zero_ref.nlargest(10, ["pm25", "population"])
 best  = plot_df.nlargest(10, "reference_per_million")
 combined = pd.concat([worst, best])
 
@@ -152,14 +153,16 @@ y = np.arange(len(combined))
 norm = plt.Normalize(colours.min(), colours.max())
 cmap = plt.cm.YlOrBr
 
-ax.barh(y, values, color=cmap(norm(colours)), edgecolor="grey", linewidth=0.4)
+ax.barh(y, values, color=cmap(norm(colours)), edgecolor="grey",
+        linewidth=0.4)
 ax.set_yticks(y)
 ax.set_yticklabels(labels)
 ax.invert_yaxis()
 ax.axhline(len(worst) - 0.5, color="grey", linewidth=0.8)
 
-# Zero-length bars are invisible: mark them with a PM2.5-coloured dot and
-# annotate the value so the colour encoding still carries information.
+# Zero-length bars are invisible: mark them with a PM2.5-coloured dot
+# and annotate the value so the colour encoding still carries
+# information.
 xmax = values.max()
 for yi, v, c in zip(y, values, colours):
     if v == 0:
@@ -170,29 +173,35 @@ for yi, v, c in zip(y, values, colours):
                     va="center", fontsize=8, color="dimgrey")
     else:
         ax.annotate(f"{v:.1f}", (v, yi), xytext=(4, 0),
-                    textcoords="offset points", va="center", fontsize=8)
+                    textcoords="offset points", va="center",
+                    fontsize=8)
 
-ax.text(xmax, (len(worst) - 1) / 2, "Highest PM2.5,\nno reference monitors",
-        ha="right", va="center", fontsize=9, style="italic", color="dimgrey")
-ax.text(xmax, len(worst) + (len(best) - 1) / 2, "Best-covered countries",
-        ha="right", va="center", fontsize=9, style="italic", color="dimgrey")
+ax.text(xmax, (len(worst) - 1) / 2,
+        "Highest PM2.5,\nno reference monitors",
+        ha="right", va="center", fontsize=9, style="italic",
+        color="dimgrey")
+ax.text(xmax, len(worst) + (len(best) - 1) / 2,
+        "Best-covered countries",
+        ha="right", va="center", fontsize=9, style="italic",
+        color="dimgrey")
 
 ax.set_xlabel("Reference-grade monitors per million people (OpenAQ)")
 ax.set_title("The most polluted air is the least monitored:\n"
-             "reference-grade coverage vs PM2.5 exposure, countries > 5 M people")
+             "reference-grade coverage vs PM2.5 exposure, "
+             "countries > 5 M people")
 
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 cbar = fig.colorbar(sm, ax=ax)
-cbar.set_label("Population-weighted mean annual PM2.5 exposure (µg/m³, modelled)")
+cbar.set_label(
+    "Population-weighted mean annual PM2.5 exposure (µg/m³, modelled)")
 
-fig.text(0.01, 0.01,
-         "Sources: OpenAQ v3 locations API (accessed Aug 2026); World Bank WDI (population; "
-         "PM2.5 mean annual exposure, EN.ATM.PM25.MC.M3).\n"
-         "Zero counts reflect absence from the OpenAQ platform, not necessarily absence of "
-         "any national monitoring network.",
-         fontsize=7)
+fig.text(0.01, 0.02,
+         "Sources: OpenAQ v3 locations API; World Bank WDI.\n"
+         "Zero counts reflect absence from OpenAQ, "
+         "not absence of national monitoring.",
+         fontsize=7, color="dimgrey")
 
-fig.tight_layout()
+fig.tight_layout(rect=[0, 0.05, 1, 1])
 fig.savefig("figures/coverage.png", dpi=200, bbox_inches="tight")
 ```
 
