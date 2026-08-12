@@ -250,9 +250,12 @@ def flatten_stations(records: list[dict]):
             "is_monitor": r.get("isMonitor"),
             "is_mobile": r.get("isMobile"),
             "n_sensors": len(r.get("sensors") or []),
+            "instrument": (r.get("instruments") or [{}])[0].get("name"),
+            "n_instruments": len(r.get("instruments") or []),
             "datetime_first": dt_first.get("utc") if isinstance(dt_first, dict) else None,
             "datetime_last": dt_last.get("utc") if isinstance(dt_last, dict) else None,
             "licence": licences[0].get("name") if licences else None,
+            "licence_from": licences[0].get("dateFrom") if licences else None,
             "attribution": (licences[0].get("attribution") or {}).get("name") if licences else None,
         })
     return pd.DataFrame(rows)
