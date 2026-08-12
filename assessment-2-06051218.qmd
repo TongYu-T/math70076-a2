@@ -19,7 +19,7 @@ Two mistakes taught me more than the successes. Early on I pasted my API key int
 
 I used an LLM for source scouting and debugging throughout. It was genuinely fast where I could verify its output immediately, and confidently wrong where I could not — it described a v3 endpoint structure the real API does not have. The deeper risk was that it kept nudging the project towards a tidy thesis before the data had earned one. The boundary I had to draw myself: I measured one platform's coverage, not any country's monitoring capability.
 
-*Appendix A: code at [GitHub link].*
+*Appendix A: code at https://github.com/TongYu-T/math70076-a2*
 
 *Word count: 547 words.*
 {{< pagebreak >}}
@@ -98,7 +98,7 @@ The project I am reflecting on is the OpenAQ coverage analysis behind Questions 
 
 Defining the project was the first real decision. I set three selection criteria before choosing a data source — enough acquisition friction to learn from, data that could carry an argument, enough computation to profile — and let them make the choice for me, including the painful part: rejecting ENTSO-E, probably the richer dataset, because its three-working-day token turnaround did not fit the deadline. Writing criteria down before looking hard at candidates was the single most useful management practice in the project. Every later scope question ("should I add a second pollutant? a time dimension?") got tested against the same three lines instead of being relitigated from scratch.
 
-The reproducibility infrastructure was mostly standard, and I chose it for a selfish reason that turned out to be the right one: the first beneficiary of reproducible work is you, three days later. The code lives in an installable package (pip install -e .) rather than behind sys.path hacks, so imports behave identically anywhere; dependencies are pinned in pyproject.toml; the API key lives in .env, which .gitignore excludes; nbstripout keeps notebook outputs out of version control so diffs show changes to thinking rather than changes to rendering; and every API response is cached to disk. The cache was meant as politeness to a rate-limited API. It repaid itself the day my kernel died mid-analysis: the full pipeline re-ran without a network connection or a single repeated request. Similarly, the ten tests run offline with no credentials — a decision I made after realising that a test requiring my key is a test only I can run, which defeats its point. The one failure of this system was ordering: I decided where secrets live after pasting my API key into a chat window, and had to rotate it. Infrastructure decisions made reactively are made once and badly; the lesson is that "where do secrets live" belongs in the first hour of a project, next to git init.
+The reproducibility infrastructure was mostly standard, and I chose it for a selfish reason that turned out to be the right one: the first beneficiary of reproducible work is you, three days later. The code lives in an installable package (pip install -e .) rather than behind sys.path hacks, so imports behave identically anywhere; dependencies are declared in `pyproject.toml`; the API key lives in .env, which .gitignore excludes; nbstripout keeps notebook outputs out of version control so diffs show changes to thinking rather than changes to rendering; and every API response is cached to disk. The cache was meant as politeness to a rate-limited API. It repaid itself the day my kernel died mid-analysis: the full pipeline re-ran without a network connection or a single repeated request. Similarly, the ten tests run offline with no credentials — a decision I made after realising that a test requiring my key is a test only I can run, which defeats its point. The one failure of this system was ordering: I decided where secrets live after pasting my API key into a chat window, and had to rotate it. Infrastructure decisions made reactively are made once and badly; the lesson is that "where do secrets live" belongs in the first hour of a project, next to git init.
 
 There was one collaborator throughout: an LLM, and managing it turned out to be a genuine project-management problem rather than a tooling detail. It behaved like an extremely fast junior colleague with no accountability — excellent at generating candidate sources and debugging pagination, confidently wrong about API structure, and, more subtly, inclined to set direction. The correction was procedural, not technological: decisions moved to a written log with reasons attached (decisions.md in the repository), and anything the tool proposed had to be re-derived or verified before it counted. That log is now the backbone of this report's reflections, which is itself the lesson — in a solo project with an LLM, provenance of decisions needs managing as deliberately as provenance of data.
 
@@ -110,8 +110,17 @@ What I would do differently next time reduces to sequencing: secrets, caching an
 {{< pagebreak >}}
 
 ## Appendix A {.appendix}
-
-Your supporting material for question 1 goes here.
+The full acquisition pipeline is at <https://github.com/TongYu-T/math70076-a2>.
+The components relevant to this question: `src/openaq_survey/client.py`
+(authentication via `.env`, pagination until a short page, retry and
+rate-limit handling, on-disk response caching), `src/openaq_survey/worldbank.py`
+(indicator retrieval, aggregate filtering), and `notebooks/01_acquire.ipynb`
+(the run that produced `data/`: 25,364 stations over 26 pages, 105,518
+sensors, joined to World Bank denominators for 148 countries). To reproduce:
+`pip install -e ".[dev]"`, place an OpenAQ key in `.env`, run the notebook;
+cached responses make re-runs offline. The offline test suite
+(`pytest tests/ -q`, no key required) covers the client and the distance
+module.
 
 {{< pagebreak >}}
 
@@ -304,12 +313,14 @@ chunk_size  8212: 4.97 s   (intermediate ~1,127 MB)
 {{< pagebreak >}}
 
 ## Appendix E {.appendix}
+Repository layout (generated with `find`, caches excluded):
+
 ```
 math70076-a2/
 ├── README.md
 ├── decisions.md
 ├── pyproject.toml
-├── assessment-2-template.qmd
+├── assessment-2-06051218.qmd
 ├── data/
 │   ├── raw_locations.json
 │   ├── stations.csv
@@ -331,14 +342,65 @@ math70076-a2/
     ├── test_client.py
     └── test_distance.py
 ```
+
+Packaging and declared dependencies, `pyproject.toml` (excerpt):
+
+```toml
+[project]
+name = "openaq-survey"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "jupyterlab", "ipykernel", "nbstripout"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "jupyterlab", "ipykernel", "nbstripout"]
 ```
+
+Secrets and caches kept out of version control, `.gitignore` (excerpt):
+
+```
+.env
+*.key
+.venv/
+data/cache/
+data/raw_locations.json
+__pycache__/
+```
+
+Decision log (`decisions.md`, excerpt — full version in the repository):
+
+```
+| 3  | ENTSO-E rejected despite richer data.           | 3-working-day token; incompatible with deadline. |
+| 6  | API key moved to .env, key rotated.             | Key pasted into an AI chat during debugging.     |
+| 10 | Tests must run offline, no credentials.         | A test only the author can run is not a check.   |
+| 19 | Docstring "larger chunks are faster" corrected. | Profiling falsified it (Appendix D).             |
+```
+
+Commit history (`git log --oneline`, most recent first):
+
+```
+b64ec5a Track derived CSVs; raw JSON regenerable via client, not tracked
+4a28f82 Rename report to CID filename
+0360557 Report draft: Q1-Q5 responses and appendices
+55b3f09 Add World Bank client and country-level combine logic
+7217df1 Coverage figure: zero-bar annotations, shortened source note
+3b88dbc Add nearest-reference distance module with offline tests
+34acd61 Fill decision log dates
 ac1c50e Ignore __pycache__
 28fe031 Add decision log and AI acknowledgements
 d23c45b Scaffold: package layout, OpenAQ client, offline tests
 ```
+
+Offline test suite, no credentials required (`pytest tests/ -q`):
+
 ```
 17 passed in 0.65s
 ```
-
 {{< pagebreak >}}
 
