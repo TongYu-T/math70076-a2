@@ -20,3 +20,4 @@ profile.out
 .ipynb_checkpoints/
 .DS_Store
 __pycache__/
+data/raw_locations.json
