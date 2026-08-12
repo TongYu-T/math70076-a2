@@ -37,7 +37,12 @@ data/                         cached responses and derived tables (gitignored)
 ```
 
 ## Acknowledgements
+Acknowledgements
 
-<!-- TODO complete honestly before submitting: state which parts were written
-     with AI assistance and which are your own. The assessment asks you to
-     reflect on this rather than conceal it. -->
+Generative AI (Anthropic's Claude) was used throughout this project:
+
+Data source scouting: generating and comparing candidate APIs against my selection criteria. The final choice of OpenAQ and the criteria themselves were my own.
+Debugging: pagination handling, the getpass/VS Code issue, and matplotlib layout problems. All fixes were run and verified locally.
+Code drafting: initial versions of distance.py and its test suite were AI-drafted to my specification, then reviewed, run, and validated by me against known distances and the naive oracle implementation.
+
+One incident is worth recording: an API key was accidentally pasted into an AI chat during debugging and was rotated immediately. Secrets now live in .env, excluded from version control.
