@@ -367,8 +367,6 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "jupyterlab", "ipykernel", "nbstripout"]
 
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "jupyterlab", "ipykernel", "nbstripout"]
 ```
 
 Secrets and caches kept out of version control, `.gitignore` (excerpt):
@@ -385,10 +383,10 @@ __pycache__/
 Decision log (`decisions.md`, excerpt — full version in the repository):
 
 ```
-| 3  | ENTSO-E rejected despite richer data.           | 3-working-day token; incompatible with deadline. |
-| 6  | API key moved to .env, key rotated.             | Key pasted into an AI chat during debugging.     |
-| 10 | Tests must run offline, no credentials.         | A test only the author can run is not a check.   |
-| 19 | Docstring "larger chunks are faster" corrected. | Profiling falsified it (Appendix D).             |
+| 3  | ENTSO-E rejected despite richer data.  | 3-day token vs deadline.    |
+| 6  | API key moved to .env, key rotated.    | Key pasted into an AI chat. |
+| 10 | Tests run offline, no credentials.     | Author-only test ≠ a check. |
+| 19 | "Larger chunks faster" corrected.      | Falsified by profiling.     |
 ```
 
 Commit history (`git log --oneline`, most recent first):
